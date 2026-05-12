@@ -12,9 +12,11 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "@types/multer": "^2.1.0",
     "@x402/express": "^2.11.0",
     "exifreader": "^4.21.0",
     "express": "^5.2.1",
+    "multer": "^2.1.1",
     "sharp": "^0.33.0",
     "zod": "^3.23.0"
   },

@@ -1,5 +1,9 @@
 import express from 'express';
-import { 
+import multer from 'multer';
+import path from 'path';
+import { randomUUID } from 'crypto';
+import fs from 'fs';
+import {
   ListToolsRequestSchema, 
   CallToolRequestSchema 
 } from '@modelcontextprotocol/sdk/types.js';
@@ -7,6 +11,20 @@ import { handleExtract, handleBatch, handleAnalyze } from './handlers/extract.js
 import { ExtractInputSchema, BatchInputSchema, AnalyzeInputSchema } from './types.js';
 import { PRICING } from './pricing.js';
 import { checkFreemium } from './lib/payment.js';
+
+const uploadDir = '/tmp/uploads';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${randomUUID()}${ext}`);
+  }
+});
+const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
 export async function startHttpServer(port: number = 3000) {
   const app = express();
@@ -35,7 +53,6 @@ export async function startHttpServer(port: number = 3000) {
               paymentHeader: { type: 'string' },
               payer: { type: 'string' },
             },
-            required: ['imageUrl'],
           },
         },
         {
@@ -49,7 +66,6 @@ export async function startHttpServer(port: number = 3000) {
               paymentHeader: { type: 'string' },
               payer: { type: 'string' },
             },
-            required: ['imageUrls'],
           },
         },
         {
@@ -63,7 +79,6 @@ export async function startHttpServer(port: number = 3000) {
               paymentHeader: { type: 'string' },
               payer: { type: 'string' },
             },
-            required: ['imageUrl'],
           },
         },
         {
@@ -141,6 +156,19 @@ export async function startHttpServer(port: number = 3000) {
         error: { code: -32603, message: error instanceof Error ? error.message : 'Internal error' } 
       });
     }
+  });
+
+  app.post('/upload', upload.single('image'), (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    res.json({
+      success: true,
+      filePath: req.file.path,
+      fileName: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size,
+    });
   });
 
   app.get('/health', (req, res) => {
