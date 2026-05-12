@@ -290,17 +290,6 @@ To make paid requests, include the `paymentHeader`:
 
 ---
 
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | HTTP server port | stdio mode |
-| `NODE_ENV` | Environment | development |
-| `X402_FACILITATOR_URL` | x402 payment relay | https://facilitator.xpay.sh |
-| `X402_API_KEY` | xpay API key | - |
-| `X402_WALLET_ADDRESS` | Your Base USDC wallet | - |
-| `X402_NETWORK` | base or base-sepolia | base-sepolia |
-| `FREEMIUM_LIMIT` | Free requests per wallet | 50 |
 
 ---
 
