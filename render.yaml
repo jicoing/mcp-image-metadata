@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: mcp-image-metadata
+    env: docker
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      - key: X402_FACILITATOR_URL
+        value: https://facilitator.xpay.sh
+      - key: X402_API_KEY
+        value: xpay_sk_test_1b3aa35e24a27af4b3cc94391ab9c9b9d1a859f1c3652519
+      - key: X402_WALLET_ADDRESS
+        value: 0xacA148cB686187b32Effd5f600a68f0d09A02b91
+      - key: X402_NETWORK
+        value: base-sepolia
