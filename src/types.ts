@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+function safePathString() {
+  return z.string().min(1, 'Path cannot be empty').max(500, 'Path too long').refine(
+    (val) => !val.includes('..') && !val.includes('%2e'),
+    'Path traversal detected'
+  );
+}
+
 export const ExtractOptionsSchema = z.object({
   includeGps: z.boolean().default(true),
   includeColor: z.boolean().default(true),
@@ -11,21 +18,21 @@ export const ExtractOptionsSchema = z.object({
 export type ExtractOptions = z.infer<typeof ExtractOptionsSchema>;
 
 export const ExtractInputSchema = z.object({
-  imageUrl: z.string(),
+  imageUrl: safePathString(),
   includeOptions: ExtractOptionsSchema.optional(),
 });
 
 export type ExtractInput = z.infer<typeof ExtractInputSchema>;
 
 export const BatchInputSchema = z.object({
-  imageUrls: z.array(z.string()).max(50),
+  imageUrls: z.array(safePathString()).max(50),
   options: ExtractOptionsSchema.optional(),
 });
 
 export type BatchInput = z.infer<typeof BatchInputSchema>;
 
 export const AnalyzeInputSchema = z.object({
-  imageUrl: z.string(),
+  imageUrl: safePathString(),
   analysisLevel: z.enum(['basic', 'standard', 'forensic']).default('standard'),
 });
 

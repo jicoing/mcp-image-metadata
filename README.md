@@ -349,11 +349,38 @@ PORT=3000 node dist/index.js
 
 - Node.js 20+
 - TypeScript
-- @modelcontextprotocol/sdk
+- @modelcontextprotocol/sdk ^1.29.0
 - Sharp (image processing)
 - ExifReader (metadata parsing)
 - Express (HTTP server)
 - Multer (file uploads)
+
+---
+
+## Security
+
+This server implements multiple security measures:
+
+- **Path Traversal Protection**: File paths are validated to prevent directory traversal attacks
+- **MIME Type Validation**: Uploaded files are validated against allowed image types
+- **Input Validation**: Zod schemas reject path traversal patterns in user input
+- **Error Sanitization**: Error messages are sanitized to prevent information leakage
+- **Rate Limiting**: HTTP endpoints are protected with rate limiting (100 req/min per IP)
+- **CORS Configuration**: Optional origin validation for cross-origin requests
+- **Security Logging**: Security-relevant events are logged for monitoring
+
+### Security Configuration
+
+```bash
+# Optional: comma-separated list of allowed origins
+ALLOWED_ORIGINS=https://example.com,https://app.example.com
+
+# Optional: rate limit window in milliseconds (default: 60000)
+RATE_LIMIT_WINDOW=60000
+
+# Optional: max requests per window per IP (default: 100)
+RATE_LIMIT_MAX=100
+```
 
 ---
 

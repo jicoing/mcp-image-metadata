@@ -32,6 +32,11 @@ Image metadata extraction, Photo provenance verification, GPS location extractio
 - Freemium model (50 free requests per wallet)
 - x402 payment integration for USDC
 - Automatic file cleanup after extraction
+- Path traversal protection
+- MIME type validation
+- Rate limiting (100 req/min per IP)
+- CORS configuration support
+- Security event logging
 
 ## Getting Started
 - "Extract metadata from my uploaded image" — Uploads and extracts all available metadata

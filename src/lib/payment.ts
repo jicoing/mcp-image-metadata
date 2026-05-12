@@ -1,6 +1,10 @@
 import { calculatePrice, getTierFromOptions } from '../pricing.js';
 import type { PricingTier } from '../types.js';
 
+declare const globalThis: {
+  fetch: typeof fetch;
+} & typeof global;
+
 const X402_FACILITATOR_URL = process.env.X402_FACILITATOR_URL || 'https://facilitator.xpay.sh';
 const X402_API_KEY = process.env.X402_API_KEY;
 const X402_WALLET_ADDRESS = process.env.X402_WALLET_ADDRESS || '';
