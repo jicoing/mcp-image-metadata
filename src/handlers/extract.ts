@@ -2,6 +2,19 @@ import { extractMetadata, detectManipulation } from '../lib/exif.js';
 import { verifyPayment, checkFreemium } from '../lib/payment.js';
 import type { ExtractInput, BatchInput, AnalyzeInput, ImageMetadata } from '../types.js';
 import { calculatePrice, getTierFromOptions } from '../pricing.js';
+import fs from 'fs';
+
+function cleanupFile(imagePath: string): void {
+  if (imagePath.startsWith('/tmp/') || imagePath.startsWith('/uploads/')) {
+    try {
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      }
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+  }
+}
 
 export async function handleExtract(
   input: ExtractInput,
@@ -15,15 +28,16 @@ export async function handleExtract(
   freemiumRemaining?: number;
   error?: string;
 }> {
-  try {
-    const { imageUrl, includeOptions } = input;
-    const options = includeOptions || {};
-    const tier = getTierFromOptions(options);
-    const price = calculatePrice(tier);
+  const { imageUrl, includeOptions } = input;
+  const options = includeOptions || {};
+  const tier = getTierFromOptions(options);
+  const price = calculatePrice(tier);
 
+  try {
     if (paymentHeader || !checkFreemium(payer).allowed) {
       const payment = await verifyPayment(paymentHeader, tier, payer);
       if (!payment.valid) {
+        cleanupFile(imageUrl);
         return {
           success: false,
           price,
@@ -36,6 +50,7 @@ export async function handleExtract(
 
     const freemium = checkFreemium(payer);
     const data = await extractMetadata(imageUrl, options);
+    cleanupFile(imageUrl);
 
     return {
       success: true,
@@ -45,6 +60,7 @@ export async function handleExtract(
       freemiumRemaining: freemium.allowed ? freemium.remaining : 0,
     };
   } catch (error) {
+    cleanupFile(imageUrl);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -64,14 +80,15 @@ export async function handleBatch(
   freemiumRemaining?: number;
   error?: string;
 }> {
-  try {
-    const { imageUrls, options } = input;
-    const tier = getTierFromOptions(options || {});
-    const price = calculatePrice(tier, imageUrls.length);
+  const { imageUrls, options } = input;
+  const tier = getTierFromOptions(options || {});
+  const price = calculatePrice(tier, imageUrls.length);
 
+  try {
     if (paymentHeader || !checkFreemium(payer).allowed) {
       const payment = await verifyPayment(paymentHeader, tier, payer);
       if (!payment.valid) {
+        imageUrls.forEach(cleanupFile);
         return {
           success: false,
           price,
@@ -86,6 +103,7 @@ export async function handleBatch(
     const results = await Promise.all(
       imageUrls.map(url => extractMetadata(url, options))
     );
+    imageUrls.forEach(cleanupFile);
 
     return {
       success: true,
@@ -95,6 +113,7 @@ export async function handleBatch(
       freemiumRemaining: freemium.allowed ? freemium.remaining : 0,
     };
   } catch (error) {
+    imageUrls.forEach(cleanupFile);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -118,14 +137,15 @@ export async function handleAnalyze(
   freemiumRemaining?: number;
   error?: string;
 }> {
-  try {
-    const { imageUrl, analysisLevel } = input;
-    const tier = analysisLevel as 'basic' | 'standard' | 'forensic';
-    const price = calculatePrice(tier);
+  const { imageUrl, analysisLevel } = input;
+  const tier = analysisLevel as 'basic' | 'standard' | 'forensic';
+  const price = calculatePrice(tier);
 
+  try {
     if (paymentHeader || !checkFreemium(payer).allowed) {
       const payment = await verifyPayment(paymentHeader, tier, payer);
       if (!payment.valid) {
+        cleanupFile(imageUrl);
         return {
           success: false,
           price,
@@ -138,6 +158,7 @@ export async function handleAnalyze(
 
     const freemium = checkFreemium(payer);
     const result = await detectManipulation(imageUrl, analysisLevel);
+    cleanupFile(imageUrl);
 
     return {
       success: true,
@@ -147,6 +168,7 @@ export async function handleAnalyze(
       freemiumRemaining: freemium.allowed ? freemium.remaining : 0,
     };
   } catch (error) {
+    cleanupFile(imageUrl);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
